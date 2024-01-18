@@ -5,7 +5,6 @@ import Image from "next/image";
 import { memo } from "react";
 
 function ViewNasaPic({ pic }: { pic: NasaPicResp }) {
-  console.warn(pic.media_type);
   return (
     <div className="px-3 py-6 flex flex-col gap-1 items-center rounded-md bg-slate-100 h-full">
       <h2 className="font-semibold text-lg text-center">{pic.title}</h2>

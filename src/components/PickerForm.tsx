@@ -13,6 +13,15 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { useCallback, useEffect, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
+import Pagination from "@mui/material/Pagination";
+
+type PaginationType = {
+  page: number;
+  typeOfPicker: "single" | "range";
+  date: Dayjs | null;
+  startDate: Dayjs | null;
+  endDate: Dayjs | null;
+};
 
 type props = {
   setPicture: (pic: NasaPicResp[] | null) => void;
@@ -21,6 +30,16 @@ type props = {
 const minDateForApi = dayjs("Jun 16 1995");
 
 export default function PickerForm({ setPicture, setError }: props) {
+  const [totalPages, setTotalPages] = useState(1);
+
+  const [pagination, setPagination] = useState<PaginationType>({
+    typeOfPicker: "single",
+    date: dayjs(),
+    startDate: dayjs().subtract(7, "day"),
+    endDate: dayjs(),
+    page: 1,
+  });
+
   const [isPicLoading, setIsPicLoading] = useState(false);
   const [dateErrors, setDateErrors] = useState({
     start: false,
@@ -44,95 +63,149 @@ export default function PickerForm({ setPicture, setError }: props) {
     setTypeOfPicker(type);
   };
 
-  const getPictureOFTheDay = useCallback(async () => {
-    setIsPicLoading(true);
+  const onPaginationChange = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
+    console.warn(value);
+    getPictureOFTheDay({ ...pagination, page: value });
+  };
 
-    const body =
-      typeOfPicker === "single"
-        ? { date: date?.format("YYYY-MM-DD") }
-        : {
-            startDate: startDate?.format("YYYY-MM-DD"),
-            endDate: endDate?.format("YYYY-MM-DD"),
-          };
-    try {
+  const requestNewRange = async () => {
+    const itemsCount = (endDate?.diff(startDate, "day") as number) + 1;
+    setTotalPages(Math.ceil(itemsCount / 10));
+
+    getPictureOFTheDay({ typeOfPicker, date, startDate, endDate, page: 1 });
+  };
+
+  const getPictureOFTheDay = useCallback(
+    async ({
+      typeOfPicker,
+      date,
+      startDate,
+      endDate,
+      page,
+    }: PaginationType) => {
+      setPagination({ typeOfPicker, date, startDate, endDate, page });
+      setIsPicLoading(true);
       setPicture(null);
-      const res = await fetchNasaImage(body);
-      const error = typeof res === "string" ? res : undefined;
-      if (error) {
-        setError(error);
-        return;
+
+      const startDateOfPage = dayjs(startDate)
+        .add((page - 1) * 10, "days")
+        .format("YYYY-MM-DD");
+      const startPlusTen = dayjs(startDate)
+        .add(page * 9, "days")
+        .format("YYYY-MM-DD");
+      const EndDateOfPage =
+        (endDate?.diff(startPlusTen, "day") as number) > 0
+          ? startPlusTen
+          : endDate?.format("YYYY-MM-DD");
+
+      const body =
+        typeOfPicker === "single"
+          ? { date: date?.format("YYYY-MM-DD") }
+          : {
+              startDate: startDateOfPage,
+              endDate: EndDateOfPage,
+            };
+      try {
+        const res = await fetchNasaImage(body);
+        const error = typeof res === "string" ? res : undefined;
+        if (error) {
+          setError(error);
+          return;
+        }
+        setPicture(res as NasaPicResp[]);
+        setError("");
+      } finally {
+        setIsPicLoading(false);
       }
-      setPicture(res as NasaPicResp[]);
-      setError("");
-    } finally {
-      setIsPicLoading(false);
-    }
-  }, [date, endDate, setError, setPicture, startDate, typeOfPicker]);
+    },
+    [setError, setPicture]
+  );
 
   useEffect(() => {
-    getPictureOFTheDay();
+    requestNewRange();
   }, []);
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <FormControl>
-        <FormLabel id="demo-radio-buttons-group-label">
-          Type of date picking
-        </FormLabel>
-        <RadioGroup
-          value={typeOfPicker}
-          onChange={typeOfDateHandler}
-          aria-labelledby="demo-radio-buttons-group-label"
-          defaultValue="single"
-          name="radio-buttons-group"
-        >
-          <FormControlLabel value="single" control={<Radio />} label="Single" />
-          <FormControlLabel value="range" control={<Radio />} label="Range" />
-        </RadioGroup>
-      </FormControl>
-      {typeOfPicker === "single" && (
-        <DatePicker
-          label="Pick date to see related picture"
-          value={date}
-          onChange={(newValue) => setDate(newValue)}
-          disableFuture
-          minDate={minDateForApi}
-          onError={(e) => setDateErrors({ ...dateErrors, single: !!e })}
-        />
-      )}
-      {typeOfPicker === "range" && (
-        <>
+      <div className="bg-white px-3 py-6 flex flex-col gap-3 items-center rounded-md">
+        <FormControl>
+          <FormLabel id="demo-radio-buttons-group-label">
+            Type of date picking
+          </FormLabel>
+          <RadioGroup
+            value={typeOfPicker}
+            onChange={typeOfDateHandler}
+            aria-labelledby="demo-radio-buttons-group-label"
+            defaultValue="single"
+            name="radio-buttons-group"
+          >
+            <FormControlLabel
+              value="single"
+              control={<Radio />}
+              label="Single"
+            />
+            <FormControlLabel value="range" control={<Radio />} label="Range" />
+          </RadioGroup>
+        </FormControl>
+        {typeOfPicker === "single" && (
           <DatePicker
-            label="Pick start date"
-            value={startDate}
-            onChange={(newValue) => setStartDate(newValue)}
+            label="Pick date to see related picture"
+            value={date}
+            onChange={(newValue) => setDate(newValue)}
             disableFuture
-            maxDate={!dateErrors.end ? startDate : undefined}
             minDate={minDateForApi}
-            onError={(e) => setDateErrors({ ...dateErrors, start: !!e })}
+            onError={(e) => setDateErrors({ ...dateErrors, single: !!e })}
           />
-          <DatePicker
-            label="Pick end date"
-            value={endDate}
-            onChange={(newValue) => setEndDate(newValue)}
-            disableFuture
-            minDate={!dateErrors.start ? startDate?.add(1, "day") : undefined}
-            onError={(e) => setDateErrors({ ...dateErrors, end: !!e })}
-          />
-        </>
-      )}
-      <Button
-        disabled={
-          isPicLoading ||
-          (typeOfPicker === "single" && dateErrors.single) ||
-          (typeOfPicker === "range" && (dateErrors.start || dateErrors.end))
-        }
-        variant="outlined"
-        className="self-center"
-        onClick={() => getPictureOFTheDay()}
-      >
-        Get Picture{typeOfPicker === "range" && "s"}
-      </Button>
+        )}
+        {typeOfPicker === "range" && (
+          <>
+            <DatePicker
+              label="Pick start date"
+              value={startDate}
+              onChange={(newValue) => setStartDate(newValue)}
+              disableFuture
+              maxDate={!dateErrors.end ? endDate : undefined}
+              minDate={minDateForApi}
+              onError={(e) => setDateErrors({ ...dateErrors, start: !!e })}
+            />
+            <DatePicker
+              label="Pick end date"
+              value={endDate}
+              onChange={(newValue) => setEndDate(newValue)}
+              disableFuture
+              minDate={!dateErrors.start ? startDate?.add(1, "day") : undefined}
+              onError={(e) => setDateErrors({ ...dateErrors, end: !!e })}
+            />
+          </>
+        )}
+        <Button
+          disabled={
+            isPicLoading ||
+            (typeOfPicker === "single" && dateErrors.single) ||
+            (typeOfPicker === "range" && (dateErrors.start || dateErrors.end))
+          }
+          variant="outlined"
+          className="self-center"
+          onClick={() => requestNewRange()}
+        >
+          Get Picture{typeOfPicker === "range" && "s"}
+        </Button>
+      </div>
+      <div className="bg-white px-3 py-6 flex flex-col gap-3 items-center rounded-md">
+        <p>
+          Pictures listed {pagination.startDate?.format("YYYY-MM-DD")} -{" "}
+          {pagination.endDate?.format("YYYY-MM-DD")}
+        </p>
+        <Pagination
+          page={pagination.page}
+          onChange={onPaginationChange}
+          count={totalPages}
+          variant="outlined"
+        />
+      </div>
     </LocalizationProvider>
   );
 }

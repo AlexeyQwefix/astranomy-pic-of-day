@@ -21,12 +21,12 @@ export default function Home() {
           <h1 className="bg-white px-3 py-6 text-xl font-bold text-center rounded-md">
             UI Astronomy Picture of the day
           </h1>
-          <div className="bg-white px-3 py-6 flex flex-col gap-3 items-center rounded-md">
+          
             <PickerForm
               setPicture={setPictureCallback}
               setError={setError}
             ></PickerForm>
-          </div>
+          
           <div
             className="bg-white px-3 py-6 grid auto-cols-auto gap-1 items-center justify-center rounded-md"
             style={{
