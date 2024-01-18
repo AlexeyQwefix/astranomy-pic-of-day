@@ -9,11 +9,10 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import PickerForm from "@/components/PickerForm";
 
 export default function Home() {
-  
-  const [picture, setPicture] = useState<NasaPicResp | null>(null);
+  const [pictures, setPictures] = useState<NasaPicResp[] | null>(null);
+  const [error, setError] = useState("");
 
-
-  const setPictureCallback = useCallback(setPicture, [setPicture]);
+  const setPictureCallback = useCallback(setPictures, [setPictures]);
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -25,13 +24,23 @@ export default function Home() {
           <div className="bg-white px-3 py-6 flex flex-col gap-3 items-center rounded-md">
             <PickerForm
               setPicture={setPictureCallback}
+              setError={setError}
             ></PickerForm>
           </div>
-          <div className="bg-white px-3 py-6 flex flex-col gap-1 items-center rounded-md">
-            {!!picture ? (
-              <ViewNasaPic pic={picture}></ViewNasaPic>
+          <div
+            className="bg-white px-3 py-6 grid auto-cols-auto gap-1 items-center justify-center rounded-md"
+            style={{
+              gridTemplateColumns: "repeat(auto-fit, minmax(100px,350px)) ",
+            }}
+          >
+            {!!pictures && pictures.length ? (
+              pictures.map((p) => (
+                <ViewNasaPic key={p.date} pic={p}></ViewNasaPic>
+              ))
+            ) : error ? (
+              <p className="text-red-500">{error}</p>
             ) : (
-              <ClipLoader></ClipLoader>
+              <ClipLoader className="mx-auto"></ClipLoader>
             )}
           </div>
         </div>
