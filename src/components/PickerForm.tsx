@@ -194,18 +194,20 @@ export default function PickerForm({ setPicture, setError }: props) {
           Get Picture{typeOfPicker === "range" && "s"}
         </Button>
       </div>
-      <div className="bg-white px-3 py-6 flex flex-col gap-3 items-center rounded-md">
-        <p>
-          Pictures listed {pagination.startDate?.format("YYYY-MM-DD")} -{" "}
-          {pagination.endDate?.format("YYYY-MM-DD")}
-        </p>
-        <Pagination
-          page={pagination.page}
-          onChange={onPaginationChange}
-          count={totalPages}
-          variant="outlined"
-        />
-      </div>
+      {pagination.typeOfPicker === "range" && (
+        <div className="bg-white px-3 py-6 flex flex-col gap-3 items-center rounded-md">
+          <p>
+            Pictures listed {pagination.startDate?.format("YYYY-MM-DD")} -{" "}
+            {pagination.endDate?.format("YYYY-MM-DD")}
+          </p>
+          <Pagination
+            page={pagination.page}
+            onChange={onPaginationChange}
+            count={totalPages}
+            variant="outlined"
+          />
+        </div>
+      )}
     </LocalizationProvider>
   );
 }
