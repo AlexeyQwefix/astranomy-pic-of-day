@@ -25,12 +25,12 @@ function ViewNasaPic({ pic }: { pic: NasaPicResp }) {
             alt={pic.title}
             placeholder="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkqAcAAIUAgUW0RjgAAAAASUVORK5CYII="
           />
-          <IconButton
-            className="absolute top-1 right-1 text-white bg-black hover:text-black hover:bg-white"
-            onClick={() => setIsFullscreenOpened(true)}
-          >
-            <FullscreenOutlinedIcon></FullscreenOutlinedIcon>
-          </IconButton>
+          <button
+              className="absolute p-2 top-1 right-1 text-white bg-black hover:text-black hover:bg-white rounded-full"
+              onClick={() => setIsFullscreenOpened(true)}
+            >
+              <FullscreenOutlinedIcon className="block"></FullscreenOutlinedIcon>
+            </button>
         </div>
       )}
 
@@ -58,12 +58,12 @@ function ViewNasaPic({ pic }: { pic: NasaPicResp }) {
               placeholder="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkqAcAAIUAgUW0RjgAAAAASUVORK5CYII="
               style={{ objectFit: "contain" }}
             />
-            <IconButton
-              className="absolute top-1 right-1 text-white bg-black hover:text-black hover:bg-white"
+            <button
+              className="absolute p-2 top-1 right-1 text-white bg-black hover:text-black hover:bg-white rounded-full"
               onClick={() => setIsFullscreenOpened(false)}
             >
-              <CloseFullscreenOutlinedIcon></CloseFullscreenOutlinedIcon>
-            </IconButton>
+              <CloseFullscreenOutlinedIcon className="block"></CloseFullscreenOutlinedIcon>
+            </button>
           </div>
         )}
       </Dialog>
