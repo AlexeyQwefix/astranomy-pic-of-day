@@ -167,7 +167,9 @@ export default function PickerForm({ setPicture, setError }: props) {
               value={startDate}
               onChange={(newValue) => setStartDate(newValue)}
               disableFuture
-              maxDate={!dateErrors.end ? endDate : undefined}
+              maxDate={
+                !dateErrors.end ? endDate?.subtract(1, "day") : undefined
+              }
               minDate={minDateForApi}
               onError={(e) => setDateErrors({ ...dateErrors, start: !!e })}
             />
